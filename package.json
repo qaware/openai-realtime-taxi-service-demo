@@ -1,6 +1,7 @@
 {
   "name": "openai-realtime-console",
   "version": "0.0.0",
+  "homepage": "./",
   "type": "module",
   "private": true,
   "dependencies": {
