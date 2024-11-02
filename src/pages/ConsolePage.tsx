@@ -27,6 +27,10 @@ import { Map } from '../components/Map';
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
 
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Type for result from get_weather() function call
  */
@@ -376,6 +380,9 @@ export function ConsolePage() {
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const client = clientRef.current;
 
+    // Set voice
+    // alloy, echo, fable, onyx, nova, and shimmer
+    client.updateSession({ voice: 'alloy' });
     // Set instructions
     client.updateSession({ instructions: instructions });
     // Set transcription, otherwise we don't get user transcriptions back
@@ -384,74 +391,68 @@ export function ConsolePage() {
     // Add tools
     client.addTool(
       {
-        name: 'set_memory',
-        description: 'Saves important data about the user into memory.',
+        name: 'reserviere_taxi',
+        description: 'Reserviert ein Taxi für den Anrufer.',
         parameters: {
           type: 'object',
           properties: {
-            key: {
+            name: {
               type: 'string',
               description:
-                'The key of the memory value. Always use lowercase and underscores, no other characters.',
+                'Der Name des Kunden',
             },
-            value: {
+            start_address: {
               type: 'string',
-              description: 'Value can be anything represented as a string',
+              description:
+                'Die Startadresse der Taxifahrt',
             },
-          },
-          required: ['key', 'value'],
+            finish_address: {
+              type: 'string',
+              description: 'Die Zieladresse der Taxifahrt',
+            },
+            persons: {
+              type: 'string',
+              description: 'Die Anzahl an Personen',
+            },
+            gepaeck: {
+              type: 'string',
+              description: 'Die Anzahl an Gepäckstücken',
+            },          },
+          required: ['start_address', 'finish_address', 'persons'],
         },
       },
-      async ({ key, value }: { [key: string]: any }) => {
-        setMemoryKv((memoryKv) => {
-          const newKv = { ...memoryKv };
-          newKv[key] = value;
-          return newKv;
-        });
-        return { ok: true };
+      async ({name, start_address, finish_address, persons, gepaeck }: { [key: string]: any }) => {
+        console.log("reserviere_taxi", name, start_address, finish_address, persons, gepaeck)
+        await sleep(2000);
+        return { ok: true, ankunftszeit: "30 Minuten", preis: "Etwa 25€" };
       }
     );
+
+    // Add tools
     client.addTool(
       {
-        name: 'get_weather',
-        description:
-          'Retrieves the weather for a given lat, lng coordinate pair. Specify a label for the location.',
+        name: 'fahrpreis_schaetzen',
+        description: 'Schaetzt den Fahrpreis.',
         parameters: {
           type: 'object',
           properties: {
-            lat: {
-              type: 'number',
-              description: 'Latitude',
-            },
-            lng: {
-              type: 'number',
-              description: 'Longitude',
-            },
-            location: {
+            start_address: {
               type: 'string',
-              description: 'Name of the location',
+              description:
+                'Die Startadresse der Taxifahrt',
+            },
+            finish_address: {
+              type: 'string',
+              description: 'Die Zieladresse der Taxifahrt',
             },
           },
-          required: ['lat', 'lng', 'location'],
+          required: ['start_address', 'finish_address'],
         },
       },
-      async ({ lat, lng, location }: { [key: string]: any }) => {
-        setMarker({ lat, lng, location });
-        setCoords({ lat, lng, location });
-        const result = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
-        );
-        const json = await result.json();
-        const temperature = {
-          value: json.current.temperature_2m as number,
-          units: json.current_units.temperature_2m as string,
-        };
-        const wind_speed = {
-          value: json.current.wind_speed_10m as number,
-          units: json.current_units.wind_speed_10m as string,
-        };
-        setMarker({ lat, lng, location, temperature, wind_speed });
-        return json;
+      async ({ start_address, finish_address}: { [key: string]: any }) => {
+        console.log("fahrpreis_schaetzen", start_address, finish_address)
+        await sleep(2000);
+        return { ok: true, preis: "Etwa 35€" };
       }
     );
 
@@ -639,7 +640,7 @@ export function ConsolePage() {
                               (conversationItem.formatted.audio?.length
                                 ? '(awaiting transcript)'
                                 : conversationItem.formatted.text ||
-                                  '(item sent)')}
+                                '(item sent)')}
                           </div>
                         )}
                       {!conversationItem.formatted.tool &&
