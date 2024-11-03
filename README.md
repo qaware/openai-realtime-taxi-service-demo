@@ -1,3 +1,8 @@
+# Realtime Demo of a Taxi Service Call Center around Munich in Germany
+
+### [Realtime Demo](https://blog.qaware.de/openai-realtime-taxi-service-demo/)
+- OpenAI API Key required
+
 # OpenAI Realtime Console
 
 The OpenAI Realtime Console is intended as an inspector and interactive API reference
